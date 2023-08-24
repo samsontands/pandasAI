@@ -2,4 +2,3 @@ streamlit
 pandas
 pandasai
 matplotlib
-os
