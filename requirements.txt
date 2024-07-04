@@ -9,4 +9,4 @@ google-generativeai
 python-dotenv
 xlrd
 openpyxl
-pillow
+Pillow
