@@ -25,7 +25,7 @@ def main():
     with st.sidebar:
         st.title("Configuration:⚙️")
         #Activating Demo Data
-        st.text("Data Setup: 📝")
+        st.text("Data Setup: 📝$2a$10$HfRGtOlM.Mp11kh76ipw9.qdScO0nwyVSQeozauNAa.SIfZtTQCmm")
         file_upload = st.file_uploader("Upload your Data",accept_multiple_files=False,type = ['csv','xls','xlsx'])
 
         st.markdown(":green[*Please ensure the first row has the column names.*]")
