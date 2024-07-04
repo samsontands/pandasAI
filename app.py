@@ -4,7 +4,7 @@ import streamlit as st
 from pandasai import Agent
 from pandasai.responses.streamlit_response import StreamlitResponse
 
-# Create sample dataframes
+# Sample dataframes
 employees_df = pd.DataFrame({
     "EmployeeID": [1, 2, 3, 4, 5],
     "Name": ["John", "Emma", "Liam", "Olivia", "William"],
@@ -25,12 +25,18 @@ agent = Agent(
     config={"verbose": True, "response_parser": StreamlitResponse},
 )
 
-# Use Streamlit to display the data and results
+# Streamlit app layout
 st.title("PandasAI with Streamlit")
 st.write("Employee Data")
 st.write(employees_df)
 st.write("Salaries Data")
 st.write(salaries_df)
 
-# Generate and display the chart
-agent.chat("Plot salaries against employee name")
+# Input box for user queries
+user_query = st.text_input("Ask a question about your data:")
+
+# Generate and display the response
+if user_query:
+    response = agent.chat(user_query)
+    st.write("Response:")
+    st.write(response)
