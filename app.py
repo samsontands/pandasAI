@@ -27,12 +27,11 @@ if uploaded_file is not None:
     if user_query:
         response = agent.chat(user_query)
         st.write("Response:")
-        st.write(response)
-
-        # Display charts if available
         if isinstance(response, list):
             for res in response:
                 if isinstance(res, dict) and "chart" in res:
                     st.pyplot(res["chart"])
+                else:
+                    st.write(res)
         else:
             st.write(response)
