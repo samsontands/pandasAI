@@ -10,6 +10,8 @@ from pandasai import Agent
 from pandasai.responses.streamlit_response import StreamlitResponse
 import os
 from PIL import Image
+import base64
+import io
 
 # Load environment variables
 load_dotenv()
@@ -20,7 +22,6 @@ data = {}
 def main():
     st.set_page_config(page_title = "PandasAI",page_icon = "🐼")
     st.title("Chat with Your Data using PandasAI:🐼")
-    #reading the csv file
     
     #Side Menu Bar
     with st.sidebar:
@@ -49,7 +50,6 @@ def main():
                           )
         st.dataframe(data[df])
 
-        
         llm = get_LLM(llm_type,user_api_key)
 
         if llm:
@@ -58,9 +58,6 @@ def main():
 
             #starting the chat with the PandasAI agent
             chat_window(analyst)
-            
-        
-
     else:
         st.warning("Please upload your data first! You can upload a CSV or an Excel file.")
 
@@ -71,31 +68,21 @@ def get_LLM(llm_type,user_api_key):
         if llm_type == 'BambooLLM':
             if user_api_key:
                 os.environ["PANDASAI_API_KEY"] = user_api_key
-            
             else:
                 # If no API key provided, try to get it from environment variables
                 os.environ["PANDASAI_API_KEY"]= os.getenv('PANDASAI_API_KEY')
-
             llm = BambooLLM()
-
         elif llm_type =='gemini-pro':
             if user_api_key:
                 genai.configure(api_key=user_api_key)
-            
             else:
                 # Configure the API key
                 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-                
             llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3,google_api_key = user_api_key)
-
         return llm
     except Exception as e:
-        #st.error(e)
         st.error("No/Incorrect API key provided! Please Provide/Verify your API key")
 
-   
-
-#Functuion for chat window
 def chat_window(analyst):
     with st.chat_message("assistant"):
         st.text("Explore your data with PandasAI?🧐")
@@ -120,13 +107,21 @@ def chat_window(analyst):
                 if os.path.exists(chart_path):
                     image = Image.open(chart_path)
                     st.image(image, caption='Generated Chart')
-                
+                    
+                    # Add download button for the chart
+                    with open(chart_path, "rb") as file:
+                        btn = st.download_button(
+                            label="Download Chart",
+                            data=file,
+                            file_name="generated_chart.png",
+                            mime="image/png"
+                        )
             #retrieving error messages
             elif 'error' in message:
                 st.text(message['error'])
+
     #Getting the questions from the users
     user_question = st.chat_input("What are you curious about? ")
-
     
     if user_question:
         #Displaying the user question in the chat message
@@ -146,6 +141,15 @@ def chat_window(analyst):
                 if os.path.exists(chart_path):
                     image = Image.open(chart_path)
                     st.image(image, caption='Generated Chart')
+                    
+                    # Add download button for the chart
+                    with open(chart_path, "rb") as file:
+                        btn = st.download_button(
+                            label="Download Chart",
+                            data=file,
+                            file_name="generated_chart.png",
+                            mime="image/png"
+                        )
         
         except Exception as e:
             st.write(e)
@@ -158,7 +162,6 @@ def chat_window(analyst):
     st.sidebar.text("Click to Clear Chat history")
     st.sidebar.button("CLEAR 🗑️",on_click=clear_chat_history)
 
-        
 def get_agent(data,llm):
     """
     The function creates an agent on the dataframes exctracted from the uploaded files
@@ -168,9 +171,7 @@ def get_agent(data,llm):
     Output: PandasAI Agent
     """
     agent = Agent(list(data.values()),config = {"llm":llm,"verbose": True, "response_parser": StreamlitResponse})
-
     return agent
-
 
 def extract_dataframes(raw_file):
     """
@@ -180,23 +181,19 @@ def extract_dataframes(raw_file):
     Processing: Based on the type of file read_csv or read_excel to extract the dataframes
     Output: 
         dfs:  a dictionary with the dataframes
-    
     """
     dfs = {}
     if raw_file.name.split('.')[1] == 'csv':
         csv_name = raw_file.name.split('.')[0]
         df = pd.read_csv(raw_file)
         dfs[csv_name] = df
-
     elif (raw_file.name.split('.')[1] == 'xlsx') or (raw_file.name.split('.')[1] == 'xls') :
         # Read the Excel file
         xls = pd.ExcelFile(raw_file)
-
         # Iterate through each sheet in the Excel file and store them into dataframes
         dfs = {}
         for sheet_name in xls.sheet_names:
             dfs[sheet_name] = pd.read_excel(raw_file, sheet_name=sheet_name)
-
     #return the dataframes
     return dfs
 
