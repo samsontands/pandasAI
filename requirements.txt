@@ -1,5 +1,11 @@
-streamlit
 pandas
+numpy
+plotly
+streamlit
 pandasai
-openai
-pyyaml
+pyYAML
+langchain_google_genai
+google-generativeai
+python-dotenv
+xlrd
+openpyxl
