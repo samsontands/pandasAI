@@ -1,67 +1,32 @@
 import streamlit as st
 import pandas as pd
 from pandasai import PandasAI
-from pandasai.llm import OpenAI
+import openai
 
-# Set up the page
-st.set_page_config(page_title="PandasAI Chat App", page_icon="🐼", layout="wide")
-st.title("PandasAI Chat App")
+# Load OpenAI API key from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Initialize session state for storing the dataframe
-if 'df' not in st.session_state:
-    st.session_state.df = None
+# Example dataset
+data = {
+    "country": ["United States", "United Kingdom", "France", "Germany", "Italy", "Spain", "Canada", "Australia", "Japan", "China"],
+    "revenue": [5000, 3200, 2900, 4100, 2300, 2100, 2500, 2600, 4500, 7000]
+}
+df = pd.DataFrame(data)
 
-# File uploader
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+# Initialize PandasAI
+pandas_ai = PandasAI()
 
-if uploaded_file is not None:
-    st.session_state.df = pd.read_csv(uploaded_file)
-    st.write("Data Preview:")
-    st.dataframe(st.session_state.df.head())
+# Streamlit app
+st.title("PandasAI with Streamlit")
+st.write("Ask questions about your data in natural language!")
 
-# Initialize PandasAI with OpenAI
-llm = OpenAI(api_token=st.secrets["openai_api_key"])
-pandas_ai = PandasAI(llm)
+# Display the dataframe
+st.dataframe(df)
 
-# Chat interface
-if st.session_state.df is not None:
-    user_question = st.text_input("Ask a question about your data:")
-    if user_question:
-        with st.spinner("Thinking..."):
-            try:
-                answer = pandas_ai.run(st.session_state.df, prompt=user_question)
-                st.write("Answer:", answer)
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
-else:
-    st.info("Please upload a CSV file to start chatting with your data.")
+# Input box for user queries
+user_query = st.text_input("Enter your query:")
 
-# Add some information about the app
-st.sidebar.header("About")
-st.sidebar.info(
-    "This app allows you to upload a CSV file and chat with your data using PandasAI. "
-    "Upload your data, then ask questions about it in natural language."
-)
-
-# Add a footer
-st.markdown(
-    """
-    <style>
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: #0E1117;
-        color: #FAFAFA;
-        text-align: center;
-        padding: 10px;
-        font-size: 14px;
-    }
-    </style>
-    <div class="footer">
-        Created with Streamlit and PandasAI | Your Name/Company
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+if user_query:
+    # Use PandasAI to answer the query
+    response = pandas_ai.run(df, user_query)
+    st.write("Response:", response)
