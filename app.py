@@ -4,39 +4,35 @@ import streamlit as st
 from pandasai import Agent
 from pandasai.responses.streamlit_response import StreamlitResponse
 
-# Sample dataframes
-employees_df = pd.DataFrame({
-    "EmployeeID": [1, 2, 3, 4, 5],
-    "Name": ["John", "Emma", "Liam", "Olivia", "William"],
-    "Department": ["HR", "Sales", "IT", "Marketing", "Finance"],
-})
-
-salaries_df = pd.DataFrame({
-    "EmployeeID": [1, 2, 3, 4, 5],
-    "Salary": [5000, 6000, 4500, 7000, 5500],
-})
-
 # Set the PandasAI API key (make sure to set this in your Streamlit secrets)
 os.environ["PANDASAI_API_KEY"] = st.secrets["PANDASAI_API_KEY"]
 
-# Create the PandasAI agent
-agent = Agent(
-    [employees_df, salaries_df],
-    config={"verbose": True, "response_parser": StreamlitResponse},
-)
-
 # Streamlit app layout
 st.title("PandasAI with Streamlit")
-st.write("Employee Data")
-st.write(employees_df)
-st.write("Salaries Data")
-st.write(salaries_df)
 
-# Input box for user queries
-user_query = st.text_input("Ask a question about your data:")
+# File uploader
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
-# Generate and display the response
-if user_query:
-    response = agent.chat(user_query)
-    st.write("Response:")
-    st.write(response)
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.write("DataFrame Preview:", df.head())
+
+    # Create the PandasAI agent with the uploaded DataFrame
+    agent = Agent([df], config={"verbose": True, "response_parser": StreamlitResponse})
+
+    # Input box for user queries
+    user_query = st.text_input("Ask a question about your data:")
+
+    # Generate and display the response
+    if user_query:
+        response = agent.chat(user_query)
+        st.write("Response:")
+        st.write(response)
+
+        # Display charts if available
+        if isinstance(response, list):
+            for res in response:
+                if isinstance(res, dict) and "chart" in res:
+                    st.pyplot(res["chart"])
+        else:
+            st.write(response)
