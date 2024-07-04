@@ -9,6 +9,8 @@ from pandasai.llm import BambooLLM
 from pandasai import Agent
 from pandasai.responses.streamlit_response import StreamlitResponse
 import os
+import base64
+from io import BytesIO
 
 # Load environment variables
 load_dotenv()
